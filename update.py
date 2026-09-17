@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Netflix-Katalog DE/HU: holt Verfügbarkeit (TMDB/JustWatch) und Ratings (OMDb).
 Filme werden nie gelöscht, nur als nicht verfügbar markiert."""
-import json, os, sys, time, urllib.parse, urllib.request
+import json, os, sys, time, urllib.error, urllib.parse, urllib.request
 from datetime import date, datetime, timedelta
 
 TMDB_KEY = os.environ["TMDB_API_KEY"]
@@ -53,7 +53,12 @@ def fetch_region(region):
 
 
 def omdb(imdb_id):
-    d = get_json(f"https://www.omdbapi.com/?i={imdb_id}&apikey={OMDB_KEY}")
+    try:
+        d = get_json(f"https://www.omdbapi.com/?i={imdb_id}&apikey={OMDB_KEY}", retries=1)
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            raise RuntimeError("OMDb: Tageslimit erreicht oder Key ungültig – Ratings werden morgen fortgesetzt")
+        raise
     if d.get("Response") == "False":
         if "limit" in d.get("Error", "").lower():
             raise RuntimeError("OMDb-Tageslimit erreicht")
