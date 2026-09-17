@@ -98,6 +98,8 @@ def main():
             e["title"] = m.get("title") or e["title"]
             e["poster"] = m.get("poster_path") or e.get("poster")
             e["genres"] = m.get("genre_ids") or e.get("genres") or []
+            e["lang"] = m.get("original_language") or e.get("lang")
+            e["ol"] = m.get("original_language") or e.get("ol")
             a = e["avail"].setdefault(region, {"first": TODAY})
             a.update(on=True, last=TODAY)
         if safe:
@@ -108,13 +110,17 @@ def main():
                     a["gone"] = TODAY
 
     # 2) Ungarischer Titel + IMDb-ID für neue Filme (ein Aufruf pro Film)
-    missing = [e for e in movies.values() if "imdb_id" not in e or "title_hu" not in e or "runtime" not in e]
+    missing = [e for e in movies.values() if "imdb_id" not in e or "title_hu" not in e or "runtime" not in e or "country" not in e or "country" not in e]
     print(f"Hole HU-Titel und IMDb-IDs für {len(missing)} Filme …")
     for e in missing:
         try:
             d = tmdb(f"/movie/{e['id']}", language="hu-HU", append_to_response="external_ids")
             e["title_hu"] = d.get("title") or e.get("orig")
             e["runtime"] = d.get("runtime") or None
+            pc = d.get("production_countries") or []
+            e["country"] = (d.get("origin_country") or [None])[0] or (pc[0]["iso_3166_1"] if pc else None)
+            pc = d.get("production_countries") or []
+            e["country"] = pc[0]["iso_3166_1"] if pc else None
             e["imdb_id"] = (d.get("external_ids") or {}).get("imdb_id") or d.get("imdb_id")
         except Exception as ex:
             print(f"  {e['id']}: {ex}")
