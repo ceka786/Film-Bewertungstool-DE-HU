@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Netflix-Katalog DE & HU</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎞️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EDF1; --surface:#FFFFFF; --ink:#18212B; --muted:#5E6B78;
+  --line:#CFD6DE; --lamp:#F2B632; --lamp-ink:#3A2A00; --off:#9AA5B1;
+  --font:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151B; --surface:#1A222B; --ink:#E8EDF2; --muted:#93A1AF;
+    --line:#2C3743; --lamp:#F2B632; --lamp-ink:#231900; --off:#56626E;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151B; --surface:#1A222B; --ink:#E8EDF2; --muted:#93A1AF;
+  --line:#2C3743; --lamp:#F2B632; --lamp-ink:#231900; --off:#56626E;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4}
+img{max-width:100%}
+header{padding:20px 16px 8px;max-width:760px;margin:0 auto}
+h1{font-size:clamp(2rem,9vw,3.2rem);font-weight:800;line-height:.95;letter-spacing:-.02em;margin:0}
+h1 small{display:block;font-size:.38em;font-weight:600;letter-spacing:0;color:var(--muted);margin-top:.5em}
+.controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 16px;border-bottom:1px solid var(--line)}
+.controls-inner{max-width:760px;margin:0 auto;display:grid;gap:8px}
+input[type=search],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{font:inherit;font-size:15px;border:0;border-radius:7px;padding:8px 0;background:none;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);font-weight:600}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted)}
+.toggle input{width:20px;height:20px;accent-color:var(--ink)}
+:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+.lang{display:flex;gap:4px;justify-content:flex-end;margin-bottom:10px}
+.lang button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+.lang button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.stats{max-width:760px;margin:0 auto;padding:10px 16px 0;color:var(--muted);font-size:14px}
+main{max-width:760px;margin:0 auto;padding:6px 8px 40px}
+.film{display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;padding:10px 8px;border-bottom:1px solid var(--line)}
+.poster{width:54px;height:81px;border-radius:5px;background:var(--line);object-fit:cover;display:block}
+.title{font-weight:600;font-size:17px;line-height:1.2}
+.meta{color:var(--muted);font-size:14px;margin-top:2px;overflow-wrap:anywhere}
+.flags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.flag{font-size:13px;border-radius:6px;padding:2px 7px;border:1px solid var(--line);background:var(--surface)}
+.flag.off{color:var(--off);text-decoration:line-through;background:none}
+.scores{display:grid;gap:4px;justify-items:end;text-align:right}
+.imdb{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.imdb.hi{background:var(--lamp);color:var(--lamp-ink);border-radius:6px;padding:2px 6px}
+.sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.seen{font:inherit;font-size:13px;border-radius:6px;padding:2px 8px;border:1px dashed var(--muted);background:none;color:var(--muted);cursor:pointer}
+.seen[aria-pressed=true]{border:1px solid #2E9E5B;background:#2E9E5B;color:#fff}
+.film.watched .title::after{content:" ✓";color:#2E9E5B}
+.film a{color:inherit;text-decoration:none}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}
+.tools button,.tools label{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+.film.gone{opacity:.42;filter:grayscale(1)}
+.film.gone .imdb.hi{background:none;color:inherit;padding:0}
+.empty,.error{padding:40px 16px;text-align:center;color:var(--muted)}
+#more{height:1px}
+footer{max-width:760px;margin:0 auto;padding:0 16px 32px;color:var(--muted);font-size:12px}
+footer a{color:inherit}
+@media (min-width:600px){.controls-inner{grid-template-columns:1fr 1fr}.controls-inner>.full{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="lang" role="group" aria-label="Sprache / Nyelv">
+    <button data-l="de">DE</button><button data-l="hu">HU</button>
+  </div>
+  <h1><span data-i="h1"></span><small data-i="sub"></small></h1>
+</header>
+
+<div class="controls">
+  <div class="controls-inner">
+    <input class="full" type="search" id="q" data-i-ph="search">
+    <div class="seg full" role="group" aria-label="Land">
+      <button data-c="ALL" aria-pressed="true" data-i="all"></button>
+      <button data-c="DE" aria-pressed="false">🇩🇪 DE</button>
+      <button data-c="HU" aria-pressed="false">🇭🇺 HU</button>
+      <button data-c="BOTH" aria-pressed="false" data-i="both"></button>
+    </div>
+    <div class="row2">
+      <select id="sort" aria-label="Sortierung">
+        <option value="imdb">IMDb</option>
+        <option value="rt">Rotten Tomatoes</option>
+        <option value="mc">Metacritic</option>
+        <option value="year" data-i="s_year"></option>
+        <option value="added" data-i="s_added"></option>
+        <option value="gone" data-i="s_gone"></option>
+        <option value="title" data-i="s_title"></option>
+      </select>
+      <select id="votes" aria-label="Mindestanzahl IMDb-Stimmen">
+        <option value="0" data-i="v0"></option>
+        <option value="1000"></option>
+        <option value="10000"></option>
+        <option value="100000"></option>
+      </select>
+    </div>
+    <select id="seenFilter" class="full" aria-label="Gesehen">
+      <option value="all" data-i="sf_all"></option>
+      <option value="no" data-i="sf_no"></option>
+      <option value="yes" data-i="sf_yes"></option>
+    </select>
+    <label class="toggle full"><input type="checkbox" id="showGone" checked> <span data-i="showGone"></span></label>
+  </div>
+</div>
+
+<p class="stats" id="stats"></p>
+<main id="list"></main>
+<div id="more"></div>
+
+<footer>
+  <div class="tools">
+    <button id="exp" data-i="exp"></button>
+    <label><span data-i="imp"></span><input type="file" id="imp" accept="application/json,.json" hidden></label>
+  </div>
+  <p data-i="seenNote"></p>
+  <span data-i="f1"></span> <a href="https://www.themoviedb.org" rel="noopener">TMDB</a> <span data-i="f2"></span> <a href="https://www.omdbapi.com" rel="noopener">OMDb</a>. <span data-i="f3"></span>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const T = {
+  de: { h1:"Was läuft auf Netflix?", sub:"Filme in Deutschland und Ungarn, sortiert nach Bewertung",
+    search:"Titel suchen", all:"Alle", both:"Beide", s_year:"Neueste Filme", s_added:"Neu im Katalog",
+    s_gone:"Zuletzt entfernt", s_title:"Titel A–Z", v0:"Alle Stimmen", vN:n=>`ab ${n} Stimmen`,
+    showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
+    stats:(n,a)=>`${n} Filme, davon ${a} aktuell verfügbar.`, stand:d=>` Stand: ${d}.`,
+    empty:"Keine Filme gefunden. Suche oder Filter anpassen.",
+    error:"Noch keine Daten vorhanden. Starte in GitHub unter „Actions“ den Workflow „Katalog aktualisieren“ und lade die Seite danach neu.",
+    since:d=>`Seit ${d}`, until:d=>`bis ${d}`, removed:d=>`Entfernt am ${d}`,
+    f1:"Daten:", f2:"(Verfügbarkeit via JustWatch) und", f3:"Dieses Projekt wird nicht von TMDB unterstützt oder zertifiziert.",
+    locale:"de-DE" },
+  hu: { h1:"Mi megy a Netflixen?", sub:"Filmek Németországban és Magyarországon, értékelés szerint rendezve",
+    search:"Keresés cím alapján", all:"Mind", both:"Mindkettő", s_year:"Legújabb filmek", s_added:"Új a katalógusban",
+    s_gone:"Nemrég eltávolítva", s_title:"Cím A–Z", v0:"Szavazat: mind", vN:n=>`min. ${n} szavazat`,
+    showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
+    stats:(n,a)=>`${n} film, ebből ${a} jelenleg elérhető.`, stand:d=>` Frissítve: ${d}.`,
+    empty:"Nincs találat. Módosítsd a keresést vagy a szűrőket.",
+    error:"Még nincsenek adatok. GitHubon az „Actions” fülön indítsd el a „Katalog aktualisieren” workflow-t, majd töltsd újra az oldalt.",
+    since:d=>`Elérhető: ${d} óta`, until:d=>`${d}-ig`, removed:d=>`Eltávolítva: ${d}`,
+    f1:"Adatok:", f2:"(elérhetőség: JustWatch) és", f3:"Ezt a projektet a TMDB nem támogatja és nem hitelesítette.",
+    locale:"hu-HU" }
+};
+let lang = (()=>{ try { return localStorage.getItem("lang") } catch(e){ return null } })()
+  || ((navigator.language||"").toLowerCase().startsWith("hu") ? "hu" : "de");
+const t = k => T[lang][k];
+function setLang(l){
+  lang = l;
+  try { localStorage.setItem("lang", l) } catch(e){}
+  document.documentElement.lang = l;
+  document.querySelectorAll("[data-i]").forEach(el => el.textContent = t(el.dataset.i));
+  document.querySelectorAll("[data-i-ph]").forEach(el => { el.placeholder = t(el.dataset.iPh); el.setAttribute("aria-label", t(el.dataset.iPh)); });
+  document.querySelectorAll("#votes option").forEach(o => { if (+o.value) o.textContent = t("vN")(nf().format(+o.value)); });
+  $("#list").addEventListener("click", e => {
+  const b = e.target.closest(".seen"); if (!b) return;
+  const row = b.closest(".film"), id = row.dataset.id;
+  if (seen[id]) delete seen[id]; else seen[id] = new Date().toISOString().slice(0,10);
+  saveSeen();
+  const w = !!seen[id];
+  row.classList.toggle("watched", w);
+  b.setAttribute("aria-pressed", w);
+  b.textContent = (w ? "✓ " : "") + t("seen");
+});
+$("#exp").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({seen}, null, 1)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `gesehen-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+});
+$("#imp").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    const add = d.seen || {};
+    Object.assign(seen, add); saveSeen(); apply();
+    alert(t("impOk")(Object.keys(add).length));
+  } catch(err) { alert(t("impErr")); }
+  e.target.value = "";
+});
+document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === l));
+  document.title = t("h1");
+  if (loaded) apply();
+}
+let loaded = false;
+let seen = (()=>{ try { return JSON.parse(localStorage.getItem("seen") || "{}") } catch(e){ return {} } })();
+function saveSeen(){ try { localStorage.setItem("seen", JSON.stringify(seen)) } catch(e){} }
+const IMG = "https://image.tmdb.org/t/p/w154";
+const nf = () => new Intl.NumberFormat(t("locale"));
+const df = d => d ? new Date(d).toLocaleDateString(t("locale"),{day:"2-digit",month:"2-digit",year:"2-digit"}) : "";
+const ttl = m => (lang === "hu" ? m.title_hu : m.title) || m.title || m.title_hu || m.orig || "";
+let all = [], view = [], shown = 0, country = "ALL", updated = null;
+const PAGE = 60;
+
+const onIn = (m, c) => !!(m.avail[c] && m.avail[c].on);
+const everIn = (m, c) => !!m.avail[c];
+
+function isAvailable(m){
+  if (country === "DE" || country === "HU") return onIn(m, country);
+  if (country === "BOTH") return onIn(m,"DE") && onIn(m,"HU");
+  return onIn(m,"DE") || onIn(m,"HU");
+}
+function inScope(m){
+  if (country === "DE" || country === "HU") return everIn(m, country);
+  if (country === "BOTH") return everIn(m,"DE") && everIn(m,"HU");
+  return true;
+}
+function lastGone(m){
+  return Object.values(m.avail).map(a => a.gone || "").sort().pop() || "";
+}
+
+function num(v){ return v == null ? -Infinity : v; }
+
+function apply(){
+  const q = $("#q").value.trim().toLowerCase();
+  const sort = $("#sort").value;
+  const minVotes = +$("#votes").value;
+  const showGone = $("#showGone").checked;
+
+  view = all.filter(m => {
+    if (!inScope(m)) return false;
+    m._on = isAvailable(m);
+    if (!showGone && !m._on) return false;
+    const sf = $("#seenFilter").value;
+    if (sf === "yes" && !seen[m.id]) return false;
+    if (sf === "no" && seen[m.id]) return false;
+    if (minVotes && ((m.r && m.r.votes) || 0) < minVotes) return false;
+    if (q && !(`${m.title||""} ${m.title_hu||""} ${m.orig||""}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  const r = (m,k) => m.r ? num(m.r[k]) : -Infinity;
+  const cmp = {
+    imdb: (a,b) => r(b,"imdb")-r(a,"imdb") || r(b,"votes")-r(a,"votes"),
+    rt:   (a,b) => r(b,"rt")-r(a,"rt") || r(b,"imdb")-r(a,"imdb"),
+    mc:   (a,b) => r(b,"mc")-r(a,"mc") || r(b,"imdb")-r(a,"imdb"),
+    year: (a,b) => (b.year||"").localeCompare(a.year||""),
+    added:(a,b) => (b.added||"").localeCompare(a.added||""),
+    gone: (a,b) => lastGone(b).localeCompare(lastGone(a)),
+    title:(a,b) => ttl(a).localeCompare(ttl(b), lang),
+  }[sort];
+  // verfügbare zuerst, außer bei "Zuletzt entfernt"
+  view.sort((a,b) => (sort !== "gone" && (b._on - a._on)) || cmp(a,b));
+
+  const avail = view.filter(m => m._on).length;
+  $("#stats").textContent = t("stats")(nf().format(view.length), nf().format(avail)) + (updated ? t("stand")(new Date(updated).toLocaleString(t("locale"),{dateStyle:"short",timeStyle:"short"})) : "");
+  $("#list").innerHTML = view.length ? "" : `<p class="empty">${t("empty")}</p>`;
+  shown = 0;
+  renderMore();
+}
+
+function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function flag(m, c, label){
+  const a = m.avail[c];
+  if (!a) return "";
+  return a.on
+    ? `<span class="flag" title="${t("since")(df(a.first))}">${label}</span>`
+    : `<span class="flag off" title="${t("removed")(df(a.gone))}">${label} ${t("until")(df(a.gone))}</span>`;
+}
+
+function card(m){
+  const r = m.r || {};
+  const imdb = r.imdb != null ? r.imdb.toFixed(1) : "–";
+  const hi = r.imdb >= 7.5 ? " hi" : "";
+  const orig = m.orig && m.orig !== ttl(m) ? `, ${esc(m.orig)}` : "";
+  const link = m.imdb_id ? `https://www.imdb.com/title/${m.imdb_id}/` : `https://www.themoviedb.org/movie/${m.id}`;
+  const w = !!seen[m.id];
+  return `<div class="film${m._on ? "" : " gone"}${w ? " watched" : ""}" data-id="${m.id}">
+    <a href="${link}" target="_blank" rel="noopener">${m.poster ? `<img class="poster" loading="lazy" alt="" src="${IMG}${m.poster}">` : `<div class="poster"></div>`}</a>
+    <div>
+      <a class="title" href="${link}" target="_blank" rel="noopener">${esc(ttl(m))}</a>
+      <div class="meta">${esc(m.year || "")}${orig}</div>
+      <div class="flags">${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button></div>
+    </div>
+    <div class="scores">
+      <div class="imdb${hi}" title="IMDb">${imdb}</div>
+      <div class="sub">🍅 ${r.rt != null ? r.rt + "%" : "–"}</div>
+      <div class="sub">MC ${r.mc != null ? r.mc : "–"}</div>
+    </div>
+  </div>`;
+}
+
+function renderMore(){
+  const chunk = view.slice(shown, shown + PAGE);
+  $("#list").insertAdjacentHTML("beforeend", chunk.map(card).join(""));
+  shown += chunk.length;
+}
+
+new IntersectionObserver(e => { if (e[0].isIntersecting && shown < view.length) renderMore(); },
+  {rootMargin:"800px"}).observe($("#more"));
+
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  country = b.dataset.c;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  apply(); window.scrollTo({top:0});
+}));
+let qTimer; $("#q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(apply, 150); });
+["#sort","#votes","#showGone","#seenFilter"].forEach(s => $(s).addEventListener("change", apply));
+
+document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.l)));
+setLang(lang);
+$("#stats").textContent = t("loading");
+fetch("data/movies.json", {cache:"no-cache"})
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(db => {
+    all = Object.values(db.movies);
+    updated = db.updated || null;
+    loaded = true;
+    apply();
+  })
+  .catch(() => {
+    $("#stats").textContent = "";
+    $("#list").innerHTML = `<p class="error">${t("error")}</p>`;
+  });
+</script>
+</body>
+</html>
