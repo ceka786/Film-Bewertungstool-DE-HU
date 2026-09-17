@@ -97,6 +97,7 @@ def main():
             })
             e["title"] = m.get("title") or e["title"]
             e["poster"] = m.get("poster_path") or e.get("poster")
+            e["genres"] = m.get("genre_ids") or e.get("genres") or []
             a = e["avail"].setdefault(region, {"first": TODAY})
             a.update(on=True, last=TODAY)
         if safe:
@@ -107,12 +108,13 @@ def main():
                     a["gone"] = TODAY
 
     # 2) Ungarischer Titel + IMDb-ID für neue Filme (ein Aufruf pro Film)
-    missing = [e for e in movies.values() if "imdb_id" not in e or "title_hu" not in e]
+    missing = [e for e in movies.values() if "imdb_id" not in e or "title_hu" not in e or "runtime" not in e]
     print(f"Hole HU-Titel und IMDb-IDs für {len(missing)} Filme …")
     for e in missing:
         try:
             d = tmdb(f"/movie/{e['id']}", language="hu-HU", append_to_response="external_ids")
             e["title_hu"] = d.get("title") or e.get("orig")
+            e["runtime"] = d.get("runtime") or None
             e["imdb_id"] = (d.get("external_ids") or {}).get("imdb_id") or d.get("imdb_id")
         except Exception as ex:
             print(f"  {e['id']}: {ex}")
@@ -138,6 +140,15 @@ def main():
 
     db["updated"] = datetime.now().isoformat(timespec="minutes")
     db["regions"] = REGIONS
+    # Genre-Namen DE/HU
+    try:
+        names = {}
+        for lang, code in (("de", "de-DE"), ("hu", "hu-HU")):
+            for g in tmdb("/genre/movie/list", language=code).get("genres", []):
+                names.setdefault(str(g["id"]), {})[lang] = g["name"]
+        db["genres"] = names
+    except Exception as ex:
+        print(f"Genres: {ex}")
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(db, f, ensure_ascii=False, separators=(",", ":"))
     print(f"Fertig: {len(movies)} Filme in der Datenbank.")
