@@ -68,6 +68,16 @@ main{max-width:760px;margin:0 auto;padding:6px 8px 40px}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}
 .tools button,.tools label{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
 .new{font-size:12px;font-weight:600;border-radius:6px;padding:2px 6px;background:var(--lamp);color:var(--lamp-ink)}
+details.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+details.panel summary{font-size:15px;cursor:pointer;list-style:none}
+details.panel summary::-webkit-details-marker{display:none}
+details.panel summary::after{content:" ▾";color:var(--muted)}
+details.panel[open] summary::after{content:" ▴"}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:8px;padding:5px 9px;cursor:pointer}
+.chip[data-s="1"]{border-color:#2E9E5B;background:#2E9E5B;color:#fff}
+.chip[data-s="2"]{border-color:#C0392B;background:#C0392B;color:#fff}
+.plabel{font-size:13px;color:var(--muted);margin-top:8px}
 .gtag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:none}
 .combo{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .film.gone{opacity:.42;filter:grayscale(1)}
@@ -127,6 +137,15 @@ footer a{color:inherit}
         <option value="120-999" data-i="rt_long"></option>
       </select>
     </div>
+    <details class="panel full">
+      <summary data-i="panelTitle"></summary>
+      <div class="plabel" data-i="panelHint"></div>
+      <div class="plabel" data-i="langLabel"></div>
+      <div class="chips" id="langChips"></div>
+      <div class="plabel" data-i="countryLabel"></div>
+      <div class="chips" id="countryChips"></div>
+      <button class="chip" id="resetPicks" data-i="resetPicks" style="margin-top:8px"></button>
+    </details>
     <select id="seenFilter" class="full" aria-label="Gesehen">
       <option value="all" data-i="sf_all"></option>
       <option value="no" data-i="sf_no"></option>
@@ -156,7 +175,8 @@ const T = {
   de: { h1:"Was läuft auf Netflix?", sub:"Filme in Deutschland und Ungarn, sortiert nach Bewertung",
     search:"Titel suchen", all:"Alle", both:"Beide", s_year:"Neueste Filme", s_added:"Neu im Katalog",
     s_gone:"Zuletzt entfernt", s_title:"Titel A–Z", v0:"Alle Stimmen", vN:n=>`ab ${n} Stimmen`,
-    showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", s_combo:"Kombi-Score", g_any:"Alle Genres", rt_any:"Laufzeit: alle", rt_90:"bis 90 Min.", rt_120:"bis 2 Std.", rt_long:"über 2 Std.", onlyNew:"Nur neu in den letzten 7 Tagen", newBadge:"NEU", min:"Min.", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
+    showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", panelTitle:"Sprache und Land", panelHint:"Tippe einmal für ✓ (nur diese), zweimal für ✗ (ausschließen), dreimal zurück auf neutral.",
+    langLabel:"Originalsprache", countryLabel:"Produktionsland", resetPicks:"Auswahl zurücksetzen", picksActive:n=>` ${n} aktiv`, s_combo:"Kombi-Score", g_any:"Alle Genres", rt_any:"Laufzeit: alle", rt_90:"bis 90 Min.", rt_120:"bis 2 Std.", rt_long:"über 2 Std.", onlyNew:"Nur neu in den letzten 7 Tagen", newBadge:"NEU", min:"Min.", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
     stats:(n,a)=>`${n} Filme, davon ${a} aktuell verfügbar.`, stand:d=>` Stand: ${d}.`,
     empty:"Keine Filme gefunden. Suche oder Filter anpassen.",
     error:"Noch keine Daten vorhanden. Starte in GitHub unter „Actions“ den Workflow „Katalog aktualisieren“ und lade die Seite danach neu.",
@@ -166,7 +186,8 @@ const T = {
   hu: { h1:"Mi megy a Netflixen?", sub:"Filmek Németországban és Magyarországon, értékelés szerint rendezve",
     search:"Keresés cím alapján", all:"Mind", both:"Mindkettő", s_year:"Legújabb filmek", s_added:"Új a katalógusban",
     s_gone:"Nemrég eltávolítva", s_title:"Cím A–Z", v0:"Szavazat: mind", vN:n=>`min. ${n} szavazat`,
-    showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", s_combo:"Kombi pontszám", g_any:"Minden műfaj", rt_any:"Hossz: mind", rt_90:"max. 90 perc", rt_120:"max. 2 óra", rt_long:"2 óránál hosszabb", onlyNew:"Csak az elmúlt 7 nap újdonságai", newBadge:"ÚJ", min:"perc", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
+    showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", panelTitle:"Nyelv és ország", panelHint:"Egy koppintás: ✓ (csak ezek), kettő: ✗ (kizárás), három: semleges.",
+    langLabel:"Eredeti nyelv", countryLabel:"Gyártó ország", resetPicks:"Választás törlése", picksActive:n=>` ${n} aktív`, s_combo:"Kombi pontszám", g_any:"Minden műfaj", rt_any:"Hossz: mind", rt_90:"max. 90 perc", rt_120:"max. 2 óra", rt_long:"2 óránál hosszabb", onlyNew:"Csak az elmúlt 7 nap újdonságai", newBadge:"ÚJ", min:"perc", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
     stats:(n,a)=>`${n} film, ebből ${a} jelenleg elérhető.`, stand:d=>` Frissítve: ${d}.`,
     empty:"Nincs találat. Módosítsd a keresést vagy a szűrőket.",
     error:"Még nincsenek adatok. GitHubon az „Actions” fülön indítsd el a „Katalog aktualisieren” workflow-t, majd töltsd újra az oldalt.",
@@ -194,6 +215,14 @@ function setLang(l){
   b.setAttribute("aria-pressed", w);
   b.textContent = (w ? "✓ " : "") + t("seen");
 });
+document.addEventListener("click", e => {
+  const c = e.target.closest(".chip[data-kind]"); if (!c) return;
+  const {kind, code} = c.dataset;
+  picks[kind][code] = ((picks[kind][code] || 0) + 1) % 3;
+  if (!picks[kind][code]) delete picks[kind][code];
+  savePicks(); fillChips(); apply();
+});
+$("#resetPicks").addEventListener("click", () => { picks.lang = {}; picks.country = {}; savePicks(); fillChips(); apply(); });
 $("#exp").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify({seen}, null, 1)], {type:"application/json"});
   const a = document.createElement("a");
@@ -215,7 +244,7 @@ document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pres
   document.title = t("h1");
   fillYears();
   fillGenres();
-  if (loaded) apply();
+  if (loaded) { fillChips(); apply(); }
 }
 let loaded = false;
 let years = [], genreNames = {}, initial = "", weekAgo = "";
@@ -241,6 +270,41 @@ function newestFirst(m){
 const gname = id => { const n = genreNames[id]; return n ? (n[lang] || n.de) : null; };
 const gtags = m => (m.genres || []).map(gname).filter(Boolean).slice(0,2)
   .map(n => `<span class="gtag">${esc(n)}</span>`).join("");
+let picks = (()=>{ try { return JSON.parse(localStorage.getItem("picks") || "{}") } catch(e){ return {} } })();
+picks.lang = picks.lang || {}; picks.country = picks.country || {};
+const savePicks = () => { try { localStorage.setItem("picks", JSON.stringify(picks)) } catch(e){} };
+const dn = (type, code) => {
+  try { return new Intl.DisplayNames([t("locale")], {type}).of(code) || code } catch(e){ return code }
+};
+function chipList(kind){
+  const key = kind === "lang" ? "lang" : "country";
+  const count = {};
+  all.forEach(m => { const v = m[key]; if (v) count[v] = (count[v] || 0) + 1; });
+  return Object.keys(count).sort((a,b) => count[b] - count[a] || a.localeCompare(b));
+}
+function fillChips(){
+  for (const [kind, id] of [["lang","#langChips"],["country","#countryChips"]]) {
+    const box = $(id); if (!box) continue;
+    box.innerHTML = chipList(kind).map(code => {
+      const st = picks[kind][code] || 0;
+      const mark = st === 1 ? "✓ " : st === 2 ? "✗ " : "";
+      const name = kind === "lang" ? dn("language", code) : dn("region", code);
+      return `<button class="chip" data-kind="${kind}" data-code="${code}" data-s="${st}">${mark}${esc(name)}</button>`;
+    }).join("");
+  }
+  const n = Object.values(picks.lang).filter(Boolean).length + Object.values(picks.country).filter(Boolean).length;
+  const sum = document.querySelector("details.panel summary");
+  if (sum) sum.textContent = t("panelTitle") + (n ? t("picksActive")(n) : "");
+}
+function passPicks(m){
+  for (const [kind, key] of [["lang","lang"],["country","country"]]) {
+    const p = picks[kind], v = m[key];
+    const wanted = Object.entries(p).filter(([,s]) => s === 1).map(([c]) => c);
+    if (v && p[v] === 2) return false;
+    if (wanted.length && !(v && p[v] === 1)) return false;
+  }
+  return true;
+}
 const isNew = m => { const f = newestFirst(m); return !!f && f > initial && f >= weekAgo; };
 function fillYears(){
   for (const [id, key] of [["#yFrom","yFrom"],["#yTo","yTo"]]) {
@@ -294,6 +358,7 @@ function apply(){
     if ((yf || yt) && !m.year) return false;
     if (yf && m.year < yf) return false;
     if (yt && m.year > yt) return false;
+    if (!passPicks(m)) return false;
     const g = $("#genre").value;
     if (g && !(m.genres || []).includes(+g)) return false;
     const rtv = $("#runtime").value;
@@ -392,6 +457,7 @@ fetch("data/movies.json", {cache:"no-cache"})
     years = [...new Set(all.map(m => m.year).filter(Boolean))].sort();
     fillYears();
     fillGenres();
+    fillChips();
     loaded = true;
     apply();
   })
