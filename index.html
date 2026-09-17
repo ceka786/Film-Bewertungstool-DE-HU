@@ -52,18 +52,23 @@ main{max-width:760px;margin:0 auto;padding:6px 8px 40px}
 .meta{color:var(--muted);font-size:14px;margin-top:2px;overflow-wrap:anywhere}
 .flags{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .flag{font-size:13px;border-radius:6px;padding:2px 7px;border:1px solid var(--line);background:var(--surface)}
-.flag.off{color:var(--off);text-decoration:line-through;background:none}
+.flag.off{color:#C0392B;text-decoration:line-through;background:none;border-color:#C0392B}
+.flag.off::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#C0392B;margin-right:5px;vertical-align:middle;text-decoration:none}
 .scores{display:grid;gap:4px;justify-items:end;text-align:right}
 .imdb{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .imdb.hi{background:var(--lamp);color:var(--lamp-ink);border-radius:6px;padding:2px 6px}
 .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .seen{font:inherit;font-size:13px;border-radius:6px;padding:2px 8px;border:1px dashed var(--muted);background:none;color:var(--muted);cursor:pointer}
 .seen[aria-pressed=true]{border:1px solid #2E9E5B;background:#2E9E5B;color:#fff}
-.film.watched .title::after{content:" ✓";color:#2E9E5B}
+.pw{position:relative;display:block;width:54px}
+.tick{position:absolute;right:-5px;top:-5px;width:20px;height:20px;border-radius:50%;background:#2E9E5B;color:#fff;font-size:12px;line-height:20px;text-align:center;border:2px solid var(--bg)}
+.film.watched .title{color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#D64545;vertical-align:1px;margin-right:2px}
 .film a{color:inherit;text-decoration:none}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}
 .tools button,.tools label{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
 .new{font-size:12px;font-weight:600;border-radius:6px;padding:2px 6px;background:var(--lamp);color:var(--lamp-ink)}
+.gtag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:none}
 .combo{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .film.gone{opacity:.42;filter:grayscale(1)}
 .film.gone .imdb.hi{background:none;color:inherit;padding:0}
@@ -233,6 +238,9 @@ function newestFirst(m){
   const cs = (country === "DE" || country === "HU") ? [country] : Object.keys(m.avail);
   return cs.map(c => (m.avail[c] && m.avail[c].first) || "").sort().pop() || "";
 }
+const gname = id => { const n = genreNames[id]; return n ? (n[lang] || n.de) : null; };
+const gtags = m => (m.genres || []).map(gname).filter(Boolean).slice(0,2)
+  .map(n => `<span class="gtag">${esc(n)}</span>`).join("");
 const isNew = m => { const f = newestFirst(m); return !!f && f > initial && f >= weekAgo; };
 function fillYears(){
   for (const [id, key] of [["#yFrom","yFrom"],["#yTo","yTo"]]) {
@@ -327,7 +335,7 @@ function flag(m, c, label){
   if (!a) return "";
   return a.on
     ? `<span class="flag" title="${t("since")(df(a.first))}">${label}</span>`
-    : `<span class="flag off" title="${t("removed")(df(a.gone))}">${label} ${t("until")(df(a.gone))}</span>`;
+    : `<span class="flag off" title="${t("removed")(df(a.gone))}"><span class="dot"></span>${label} ${t("until")(df(a.gone))}</span>`;
 }
 
 function card(m){
@@ -338,11 +346,11 @@ function card(m){
   const link = m.imdb_id ? `https://www.imdb.com/title/${m.imdb_id}/` : `https://www.themoviedb.org/movie/${m.id}`;
   const w = !!seen[m.id];
   return `<div class="film${m._on ? "" : " gone"}${w ? " watched" : ""}" data-id="${m.id}">
-    <a href="${link}" target="_blank" rel="noopener">${m.poster ? `<img class="poster" loading="lazy" alt="" src="${IMG}${m.poster}">` : `<div class="poster"></div>`}</a>
+    <a class="pw" href="${link}" target="_blank" rel="noopener">${m.poster ? `<img class="poster" loading="lazy" alt="" src="${IMG}${m.poster}">` : `<div class="poster"></div>`}${w ? `<span class="tick" aria-hidden="true">✓</span>` : ""}</a>
     <div>
       <a class="title" href="${link}" target="_blank" rel="noopener">${esc(ttl(m))}</a>
       <div class="meta">${esc(m.year || "")}${m.runtime ? `, ${m.runtime} ${t("min")}` : ""}${orig}</div>
-      <div class="flags">${isNew(m) ? `<span class="new">${t("newBadge")}</span>` : ""}${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button></div>
+      <div class="flags">${isNew(m) ? `<span class="new">${t("newBadge")}</span>` : ""}${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}${gtags(m)}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button></div>
     </div>
     <div class="scores">
       <div class="imdb${hi}" title="IMDb">${imdb}</div>
