@@ -63,6 +63,8 @@ main{max-width:760px;margin:0 auto;padding:6px 8px 40px}
 .film a{color:inherit;text-decoration:none}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}
 .tools button,.tools label{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+.new{font-size:12px;font-weight:600;border-radius:6px;padding:2px 6px;background:var(--lamp);color:var(--lamp-ink)}
+.combo{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .film.gone{opacity:.42;filter:grayscale(1)}
 .film.gone .imdb.hi{background:none;color:inherit;padding:0}
 .empty,.error{padding:40px 16px;text-align:center;color:var(--muted)}
@@ -91,6 +93,7 @@ footer a{color:inherit}
     </div>
     <div class="row2">
       <select id="sort" aria-label="Sortierung">
+        <option value="combo" data-i="s_combo"></option>
         <option value="imdb">IMDb</option>
         <option value="rt">Rotten Tomatoes</option>
         <option value="mc">Metacritic</option>
@@ -110,11 +113,21 @@ footer a{color:inherit}
       <select id="yFrom" aria-label="Jahr von"></select>
       <select id="yTo" aria-label="Jahr bis"></select>
     </div>
+    <div class="row2">
+      <select id="genre" aria-label="Genre"></select>
+      <select id="runtime" aria-label="Laufzeit">
+        <option value="" data-i="rt_any"></option>
+        <option value="0-90" data-i="rt_90"></option>
+        <option value="0-120" data-i="rt_120"></option>
+        <option value="120-999" data-i="rt_long"></option>
+      </select>
+    </div>
     <select id="seenFilter" class="full" aria-label="Gesehen">
       <option value="all" data-i="sf_all"></option>
       <option value="no" data-i="sf_no"></option>
       <option value="yes" data-i="sf_yes"></option>
     </select>
+    <label class="toggle full"><input type="checkbox" id="onlyNew"> <span data-i="onlyNew"></span></label>
     <label class="toggle full"><input type="checkbox" id="showGone" checked> <span data-i="showGone"></span></label>
   </div>
 </div>
@@ -138,7 +151,7 @@ const T = {
   de: { h1:"Was läuft auf Netflix?", sub:"Filme in Deutschland und Ungarn, sortiert nach Bewertung",
     search:"Titel suchen", all:"Alle", both:"Beide", s_year:"Neueste Filme", s_added:"Neu im Katalog",
     s_gone:"Zuletzt entfernt", s_title:"Titel A–Z", v0:"Alle Stimmen", vN:n=>`ab ${n} Stimmen`,
-    showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
+    showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", s_combo:"Kombi-Score", g_any:"Alle Genres", rt_any:"Laufzeit: alle", rt_90:"bis 90 Min.", rt_120:"bis 2 Std.", rt_long:"über 2 Std.", onlyNew:"Nur neu in den letzten 7 Tagen", newBadge:"NEU", min:"Min.", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
     stats:(n,a)=>`${n} Filme, davon ${a} aktuell verfügbar.`, stand:d=>` Stand: ${d}.`,
     empty:"Keine Filme gefunden. Suche oder Filter anpassen.",
     error:"Noch keine Daten vorhanden. Starte in GitHub unter „Actions“ den Workflow „Katalog aktualisieren“ und lade die Seite danach neu.",
@@ -148,7 +161,7 @@ const T = {
   hu: { h1:"Mi megy a Netflixen?", sub:"Filmek Németországban és Magyarországon, értékelés szerint rendezve",
     search:"Keresés cím alapján", all:"Mind", both:"Mindkettő", s_year:"Legújabb filmek", s_added:"Új a katalógusban",
     s_gone:"Nemrég eltávolítva", s_title:"Cím A–Z", v0:"Szavazat: mind", vN:n=>`min. ${n} szavazat`,
-    showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
+    showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", s_combo:"Kombi pontszám", g_any:"Minden műfaj", rt_any:"Hossz: mind", rt_90:"max. 90 perc", rt_120:"max. 2 óra", rt_long:"2 óránál hosszabb", onlyNew:"Csak az elmúlt 7 nap újdonságai", newBadge:"ÚJ", min:"perc", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
     stats:(n,a)=>`${n} film, ebből ${a} jelenleg elérhető.`, stand:d=>` Frissítve: ${d}.`,
     empty:"Nincs találat. Módosítsd a keresést vagy a szűrőket.",
     error:"Még nincsenek adatok. GitHubon az „Actions” fülön indítsd el a „Katalog aktualisieren” workflow-t, majd töltsd újra az oldalt.",
@@ -196,10 +209,31 @@ $("#imp").addEventListener("change", async e => {
 document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === l));
   document.title = t("h1");
   fillYears();
+  fillGenres();
   if (loaded) apply();
 }
 let loaded = false;
-let years = [];
+let years = [], genreNames = {}, initial = "", weekAgo = "";
+function fillGenres(){
+  const sel = $("#genre"), cur = sel.value;
+  const list = Object.entries(genreNames).map(([id,n]) => [id, n[lang] || n.de || id])
+    .sort((a,b) => a[1].localeCompare(b[1], lang));
+  sel.innerHTML = `<option value="">${t("g_any")}</option>` + list.map(([id,n]) => `<option value="${id}">${esc(n)}</option>`).join("");
+  sel.value = cur;
+}
+function combo(m){
+  const r = m.r; if (!r) return null;
+  const v = [];
+  if (r.imdb != null) v.push(r.imdb * 10);
+  if (r.rt != null) v.push(r.rt);
+  if (r.mc != null) v.push(r.mc);
+  return v.length ? Math.round(v.reduce((a,b)=>a+b,0) / v.length) : null;
+}
+function newestFirst(m){
+  const cs = (country === "DE" || country === "HU") ? [country] : Object.keys(m.avail);
+  return cs.map(c => (m.avail[c] && m.avail[c].first) || "").sort().pop() || "";
+}
+const isNew = m => { const f = newestFirst(m); return !!f && f > initial && f >= weekAgo; };
 function fillYears(){
   for (const [id, key] of [["#yFrom","yFrom"],["#yTo","yTo"]]) {
     const sel = $(id), cur = sel.value;
@@ -252,6 +286,11 @@ function apply(){
     if ((yf || yt) && !m.year) return false;
     if (yf && m.year < yf) return false;
     if (yt && m.year > yt) return false;
+    const g = $("#genre").value;
+    if (g && !(m.genres || []).includes(+g)) return false;
+    const rtv = $("#runtime").value;
+    if (rtv) { const [lo, hi] = rtv.split("-").map(Number); if (!m.runtime || m.runtime <= lo || m.runtime > hi) return false; }
+    if ($("#onlyNew").checked && !isNew(m)) return false;
     const sf = $("#seenFilter").value;
     if (sf === "yes" && !seen[m.id]) return false;
     if (sf === "no" && seen[m.id]) return false;
@@ -262,6 +301,7 @@ function apply(){
 
   const r = (m,k) => m.r ? num(m.r[k]) : -Infinity;
   const cmp = {
+    combo:(a,b) => num(combo(b))-num(combo(a)) || r(b,"votes")-r(a,"votes"),
     imdb: (a,b) => r(b,"imdb")-r(a,"imdb") || r(b,"votes")-r(a,"votes"),
     rt:   (a,b) => r(b,"rt")-r(a,"rt") || r(b,"imdb")-r(a,"imdb"),
     mc:   (a,b) => r(b,"mc")-r(a,"mc") || r(b,"imdb")-r(a,"imdb"),
@@ -301,11 +341,12 @@ function card(m){
     <a href="${link}" target="_blank" rel="noopener">${m.poster ? `<img class="poster" loading="lazy" alt="" src="${IMG}${m.poster}">` : `<div class="poster"></div>`}</a>
     <div>
       <a class="title" href="${link}" target="_blank" rel="noopener">${esc(ttl(m))}</a>
-      <div class="meta">${esc(m.year || "")}${orig}</div>
-      <div class="flags">${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button></div>
+      <div class="meta">${esc(m.year || "")}${m.runtime ? `, ${m.runtime} ${t("min")}` : ""}${orig}</div>
+      <div class="flags">${isNew(m) ? `<span class="new">${t("newBadge")}</span>` : ""}${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button></div>
     </div>
     <div class="scores">
       <div class="imdb${hi}" title="IMDb">${imdb}</div>
+      <div class="combo" title="${t("s_combo")}">Ø ${combo(m) ?? "–"}</div>
       <div class="sub">🍅 ${r.rt != null ? r.rt + "%" : "–"}</div>
       <div class="sub">MC ${r.mc != null ? r.mc : "–"}</div>
     </div>
@@ -327,7 +368,7 @@ document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click"
   apply(); window.scrollTo({top:0});
 }));
 let qTimer; $("#q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(apply, 150); });
-["#sort","#votes","#showGone","#seenFilter","#yFrom","#yTo"].forEach(s => $(s).addEventListener("change", apply));
+["#sort","#votes","#showGone","#seenFilter","#yFrom","#yTo","#genre","#runtime","#onlyNew"].forEach(s => $(s).addEventListener("change", apply));
 
 document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.l)));
 setLang(lang);
@@ -337,8 +378,12 @@ fetch("data/movies.json", {cache:"no-cache"})
   .then(db => {
     all = Object.values(db.movies);
     updated = db.updated || null;
+    genreNames = db.genres || {};
+    initial = all.map(m => m.added || "").filter(Boolean).sort()[0] || "";
+    weekAgo = new Date(Date.now() - 7*864e5).toISOString().slice(0,10);
     years = [...new Set(all.map(m => m.year).filter(Boolean))].sort();
     fillYears();
+    fillGenres();
     loaded = true;
     apply();
   })
