@@ -31,7 +31,7 @@ img{max-width:100%}
 header{padding:20px 16px 8px;max-width:760px;margin:0 auto}
 h1{font-size:clamp(2rem,9vw,3.2rem);font-weight:800;line-height:.95;letter-spacing:-.02em;margin:0}
 h1 small{display:block;font-size:.38em;font-weight:600;letter-spacing:0;color:var(--muted);margin-top:.5em}
-.controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 16px;border-bottom:1px solid var(--line)}
+.controls{background:var(--bg);padding:10px 16px;border-bottom:1px solid var(--line)}
 .controls-inner{max-width:760px;margin:0 auto;display:grid;gap:8px}
 input[type=search],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
@@ -106,6 +106,10 @@ footer a{color:inherit}
         <option value="100000"></option>
       </select>
     </div>
+    <div class="row2">
+      <select id="yFrom" aria-label="Jahr von"></select>
+      <select id="yTo" aria-label="Jahr bis"></select>
+    </div>
     <select id="seenFilter" class="full" aria-label="Gesehen">
       <option value="all" data-i="sf_all"></option>
       <option value="no" data-i="sf_no"></option>
@@ -134,7 +138,7 @@ const T = {
   de: { h1:"Was läuft auf Netflix?", sub:"Filme in Deutschland und Ungarn, sortiert nach Bewertung",
     search:"Titel suchen", all:"Alle", both:"Beide", s_year:"Neueste Filme", s_added:"Neu im Katalog",
     s_gone:"Zuletzt entfernt", s_title:"Titel A–Z", v0:"Alle Stimmen", vN:n=>`ab ${n} Stimmen`,
-    showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
+    showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
     stats:(n,a)=>`${n} Filme, davon ${a} aktuell verfügbar.`, stand:d=>` Stand: ${d}.`,
     empty:"Keine Filme gefunden. Suche oder Filter anpassen.",
     error:"Noch keine Daten vorhanden. Starte in GitHub unter „Actions“ den Workflow „Katalog aktualisieren“ und lade die Seite danach neu.",
@@ -144,7 +148,7 @@ const T = {
   hu: { h1:"Mi megy a Netflixen?", sub:"Filmek Németországban és Magyarországon, értékelés szerint rendezve",
     search:"Keresés cím alapján", all:"Mind", both:"Mindkettő", s_year:"Legújabb filmek", s_added:"Új a katalógusban",
     s_gone:"Nemrég eltávolítva", s_title:"Cím A–Z", v0:"Szavazat: mind", vN:n=>`min. ${n} szavazat`,
-    showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
+    showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
     stats:(n,a)=>`${n} film, ebből ${a} jelenleg elérhető.`, stand:d=>` Frissítve: ${d}.`,
     empty:"Nincs találat. Módosítsd a keresést vagy a szűrőket.",
     error:"Még nincsenek adatok. GitHubon az „Actions” fülön indítsd el a „Katalog aktualisieren” workflow-t, majd töltsd újra az oldalt.",
@@ -191,9 +195,21 @@ $("#imp").addEventListener("change", async e => {
 });
 document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.l === l));
   document.title = t("h1");
+  fillYears();
   if (loaded) apply();
 }
 let loaded = false;
+let years = [];
+function fillYears(){
+  for (const [id, key] of [["#yFrom","yFrom"],["#yTo","yTo"]]) {
+    const sel = $(id), cur = sel.value;
+    const list = key === "yTo" ? [...years].reverse() : years;
+    sel.innerHTML = `<option value="">${t(key)}: ${t("yAny")}</option>` +
+      list.map(y => `<option value="${y}">${key === "yFrom" ? t("yFrom") : t("yTo")}: ${y}</option>`).join("");
+    sel.value = cur;
+    sel.setAttribute("aria-label", t(key));
+  }
+}
 let seen = (()=>{ try { return JSON.parse(localStorage.getItem("seen") || "{}") } catch(e){ return {} } })();
 function saveSeen(){ try { localStorage.setItem("seen", JSON.stringify(seen)) } catch(e){} }
 const IMG = "https://image.tmdb.org/t/p/w154";
@@ -232,6 +248,10 @@ function apply(){
     if (!inScope(m)) return false;
     m._on = isAvailable(m);
     if (!showGone && !m._on) return false;
+    const yf = $("#yFrom").value, yt = $("#yTo").value;
+    if ((yf || yt) && !m.year) return false;
+    if (yf && m.year < yf) return false;
+    if (yt && m.year > yt) return false;
     const sf = $("#seenFilter").value;
     if (sf === "yes" && !seen[m.id]) return false;
     if (sf === "no" && seen[m.id]) return false;
@@ -307,7 +327,7 @@ document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click"
   apply(); window.scrollTo({top:0});
 }));
 let qTimer; $("#q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(apply, 150); });
-["#sort","#votes","#showGone","#seenFilter"].forEach(s => $(s).addEventListener("change", apply));
+["#sort","#votes","#showGone","#seenFilter","#yFrom","#yTo"].forEach(s => $(s).addEventListener("change", apply));
 
 document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.l)));
 setLang(lang);
@@ -317,6 +337,8 @@ fetch("data/movies.json", {cache:"no-cache"})
   .then(db => {
     all = Object.values(db.movies);
     updated = db.updated || null;
+    years = [...new Set(all.map(m => m.year).filter(Boolean))].sort();
+    fillYears();
     loaded = true;
     apply();
   })
