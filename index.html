@@ -1,4 +1,12 @@
 <!doctype html>
+<!--
+  NETFLIX-KATALÓGUS DE/HU – a weboldal
+  ====================================
+  Egyetlen fájl: HTML (szerkezet) + CSS (kinézet) + JavaScript (működés).
+  Adatot nem gyűjt, csak beolvassa a data/movies.json fájlt, amit az
+  update.py készít. A pipák és a szűrők a böngésződben tárolódnak.
+  Bővebb magyarázat: DOKUMENTACIO.md
+-->
 <html lang="de">
 <head>
 <meta charset="utf-8">
@@ -9,6 +17,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
+/* ===== 1. SZÍNEK ÉS BETŰTÍPUS ============================================
+   A :root a "gyökér", ide tesszük a változókat (--bg = háttér, --ink = szöveg).
+   Így egy helyen átszínezhető az egész oldal. A sötét mód automatikusan
+   átvált a telefon beállítása szerint (prefers-color-scheme). */
 :root{
   --bg:#E9EDF1; --surface:#FFFFFF; --ink:#18212B; --muted:#5E6B78;
   --line:#CFD6DE; --lamp:#F2B632; --lamp-ink:#3A2A00; --off:#9AA5B1;
@@ -24,6 +36,7 @@
   --bg:#10151B; --surface:#1A222B; --ink:#E8EDF2; --muted:#93A1AF;
   --line:#2C3743; --lamp:#F2B632; --lamp-ink:#231900; --off:#56626E;
 }
+/* ===== 2. ALAPOK ======================================================== */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4}
@@ -31,6 +44,7 @@ img{max-width:100%}
 header{padding:20px 16px 8px;max-width:760px;margin:0 auto}
 h1{font-size:clamp(2rem,9vw,3.2rem);font-weight:800;line-height:.95;letter-spacing:-.02em;margin:0}
 h1 small{display:block;font-size:.38em;font-weight:600;letter-spacing:0;color:var(--muted);margin-top:.5em}
+/* ===== 3. FEJLÉC ÉS SZŰRŐSÁV =========================================== */
 .controls{background:var(--bg);padding:10px 16px;border-bottom:1px solid var(--line)}
 .controls-inner{max-width:760px;margin:0 auto;display:grid;gap:8px}
 input[type=search],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
@@ -46,6 +60,7 @@ input[type=search],select{width:100%;font:inherit;font-size:16px;color:var(--ink
 .lang button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .stats{max-width:760px;margin:0 auto;padding:10px 16px 0;color:var(--muted);font-size:14px}
 main{max-width:760px;margin:0 auto;padding:6px 8px 40px}
+/* ===== 4. EGY FILM SORA (poszter | cím | pontszámok) ==================== */
 .film{display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;padding:10px 8px;border-bottom:1px solid var(--line)}
 .poster{width:54px;height:81px;border-radius:5px;background:var(--line);object-fit:cover;display:block}
 .title{font-weight:600;font-size:17px;line-height:1.2}
@@ -67,7 +82,14 @@ main{max-width:760px;margin:0 auto;padding:6px 8px 40px}
 .film a{color:inherit;text-decoration:none}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}
 .tools button,.tools label{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+.star{font:inherit;font-size:13px;border-radius:6px;padding:2px 8px;border:1px dashed var(--muted);background:none;color:var(--muted);cursor:pointer}
+.star[aria-pressed=true]{border:1px solid #C98A00;background:#C98A00;color:#fff}
+.rec{font:inherit;font-size:13px;border-radius:6px;padding:2px 8px;border:1px dashed var(--muted);background:none;color:var(--muted);cursor:pointer}
+.rec[aria-pressed=true]{border:1px solid #6C4FB8;background:#6C4FB8;color:#fff}
+.recbadge{font-size:12px;font-weight:600;border-radius:6px;padding:2px 6px;background:#6C4FB8;color:#fff}
+#resetAll{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 12px;cursor:pointer}
 .new{font-size:12px;font-weight:600;border-radius:6px;padding:2px 6px;background:var(--lamp);color:var(--lamp-ink)}
+/* ===== 5. "NYELV ÉS ORSZÁG" PANEL (a pipa/x gombok) ===================== */
 details.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 details.panel summary{font-size:15px;cursor:pointer;list-style:none}
 details.panel summary::-webkit-details-marker{display:none}
@@ -151,11 +173,17 @@ footer a{color:inherit}
       <option value="no" data-i="sf_no"></option>
       <option value="yes" data-i="sf_yes"></option>
     </select>
+    <select id="listFilter" class="full" aria-label="Liste">
+      <option value="all" data-i="l_all"></option>
+      <option value="watch" data-i="l_watch"></option>
+      <option value="rec" data-i="l_rec"></option>
+    </select>
     <label class="toggle full"><input type="checkbox" id="onlyNew"> <span data-i="onlyNew"></span></label>
     <label class="toggle full"><input type="checkbox" id="showGone" checked> <span data-i="showGone"></span></label>
   </div>
 </div>
 
+<div class="stats"><button id="resetAll"></button></div>
 <p class="stats" id="stats"></p>
 <main id="list"></main>
 <div id="more"></div>
@@ -163,6 +191,7 @@ footer a{color:inherit}
 <footer>
   <div class="tools">
     <button id="exp" data-i="exp"></button>
+    <button id="expRec" data-i="expRec"></button>
     <label><span data-i="imp"></span><input type="file" id="imp" accept="application/json,.json" hidden></label>
   </div>
   <p data-i="seenNote"></p>
@@ -170,13 +199,22 @@ footer a{color:inherit}
 </footer>
 
 <script>
+/* ===== 1. SEGÉDESZKÖZÖK ==================================================
+   $   = rövidítés elemek megkeresésére ("query selector")
+   IMG = a poszterképek címének eleje (a film saját útvonala jön utána) */
 const $ = s => document.querySelector(s);
+/* ===== 2. SZÖVEGEK KÉT NYELVEN ===========================================
+   Minden felirat itt van németül (de) és magyarul (hu). A HTML-ben csak
+   jelölés van (data-i="..."), a setLang() tölti be a megfelelő szöveget. */
 const T = {
   de: { h1:"Was läuft auf Netflix?", sub:"Filme in Deutschland und Ungarn, sortiert nach Bewertung",
     search:"Titel suchen", all:"Alle", both:"Beide", s_year:"Neueste Filme", s_added:"Neu im Katalog",
     s_gone:"Zuletzt entfernt", s_title:"Titel A–Z", v0:"Alle Stimmen", vN:n=>`ab ${n} Stimmen`,
     showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", panelTitle:"Sprache und Land", panelHint:"Tippe einmal für ✓ (nur diese), zweimal für ✗ (ausschließen), dreimal zurück auf neutral.",
-    langLabel:"Originalsprache", countryLabel:"Produktionsland", resetPicks:"Auswahl zurücksetzen", picksActive:n=>` ${n} aktiv`, s_combo:"Kombi-Score", g_any:"Alle Genres", rt_any:"Laufzeit: alle", rt_90:"bis 90 Min.", rt_120:"bis 2 Std.", rt_long:"über 2 Std.", onlyNew:"Nur neu in den letzten 7 Tagen", newBadge:"NEU", min:"Min.", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Filme als gesehen übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
+    langLabel:"Originalsprache", countryLabel:"Produktionsland", resetPicks:"Auswahl zurücksetzen", picksActive:n=>` ${n} aktiv`, s_combo:"Kombi-Score", g_any:"Alle Genres", rt_any:"Laufzeit: alle", rt_90:"bis 90 Min.", rt_120:"bis 2 Std.", rt_long:"über 2 Std.", onlyNew:"Nur neu in den letzten 7 Tagen", newBadge:"NEU", min:"Min.", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", watch:"Merken", rec:"Ich empfehle", recBadge:"🍽 Empfehlung", l_all:"Alle Filme", l_watch:"Nur meine Merkliste", l_rec:"Nur meine Empfehlungen",
+    resetAll:n=>n ? `Filter zurücksetzen (${n} aktiv)` : "Keine Filter aktiv",
+    expRec:"Empfehlungen als Datei", recHint:"Datei ajanlasok.json ins Repo laden, dann sehen sie auch deine Brüder.",
+    exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Einträge übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
     stats:(n,a)=>`${n} Filme, davon ${a} aktuell verfügbar.`, stand:d=>` Stand: ${d}.`,
     empty:"Keine Filme gefunden. Suche oder Filter anpassen.",
     error:"Noch keine Daten vorhanden. Starte in GitHub unter „Actions“ den Workflow „Katalog aktualisieren“ und lade die Seite danach neu.",
@@ -187,7 +225,10 @@ const T = {
     search:"Keresés cím alapján", all:"Mind", both:"Mindkettő", s_year:"Legújabb filmek", s_added:"Új a katalógusban",
     s_gone:"Nemrég eltávolítva", s_title:"Cím A–Z", v0:"Szavazat: mind", vN:n=>`min. ${n} szavazat`,
     showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", panelTitle:"Nyelv és ország", panelHint:"Egy koppintás: ✓ (csak ezek), kettő: ✗ (kizárás), három: semleges.",
-    langLabel:"Eredeti nyelv", countryLabel:"Gyártó ország", resetPicks:"Választás törlése", picksActive:n=>` ${n} aktív`, s_combo:"Kombi pontszám", g_any:"Minden műfaj", rt_any:"Hossz: mind", rt_90:"max. 90 perc", rt_120:"max. 2 óra", rt_long:"2 óránál hosszabb", onlyNew:"Csak az elmúlt 7 nap újdonságai", newBadge:"ÚJ", min:"perc", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} film látottként betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
+    langLabel:"Eredeti nyelv", countryLabel:"Gyártó ország", resetPicks:"Választás törlése", picksActive:n=>` ${n} aktív`, s_combo:"Kombi pontszám", g_any:"Minden műfaj", rt_any:"Hossz: mind", rt_90:"max. 90 perc", rt_120:"max. 2 óra", rt_long:"2 óránál hosszabb", onlyNew:"Csak az elmúlt 7 nap újdonságai", newBadge:"ÚJ", min:"perc", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", watch:"Megnézem", rec:"Ajánlom", recBadge:"🍽 Ajánlott", l_all:"Minden film", l_watch:"Csak a listám", l_rec:"Csak az ajánlásaim",
+    resetAll:n=>n ? `Szűrők törlése (${n} aktív)` : "Nincs aktív szűrő",
+    expRec:"Ajánlások fájlba", recHint:"Az ajanlasok.json fájlt töltsd fel a repóba, akkor a tesóid is látják.",
+    exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} bejegyzés betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
     stats:(n,a)=>`${n} film, ebből ${a} jelenleg elérhető.`, stand:d=>` Frissítve: ${d}.`,
     empty:"Nincs találat. Módosítsd a keresést vagy a szűrőket.",
     error:"Még nincsenek adatok. GitHubon az „Actions” fülön indítsd el a „Katalog aktualisieren” workflow-t, majd töltsd újra az oldalt.",
@@ -206,6 +247,17 @@ function setLang(l){
   document.querySelectorAll("[data-i-ph]").forEach(el => { el.placeholder = t(el.dataset.iPh); el.setAttribute("aria-label", t(el.dataset.iPh)); });
   document.querySelectorAll("#votes option").forEach(o => { if (+o.value) o.textContent = t("vN")(nf().format(+o.value)); });
   $("#list").addEventListener("click", e => {
+  // ⭐ Merkliste und 🍽 Empfehlung: umschalten und Zeile neu zeichnen
+  const sb = e.target.closest(".star"), rb = e.target.closest(".rec");
+  if (sb || rb) {
+    const row = (sb || rb).closest(".film"), id = row.dataset.id;
+    const obj = sb ? watch : recs, key = sb ? "watch" : "recs";
+    if (obj[id]) delete obj[id]; else obj[id] = new Date().toISOString().slice(0,10);
+    store(key, obj);
+    const m = all.find(x => String(x.id) === id);
+    if (m) { m._on = isAvailable(m); row.outerHTML = card(m); }
+    return;
+  }
   const b = e.target.closest(".seen"); if (!b) return;
   const row = b.closest(".film"), id = row.dataset.id;
   if (seen[id]) delete seen[id]; else seen[id] = new Date().toISOString().slice(0,10);
@@ -215,6 +267,7 @@ function setLang(l){
   b.setAttribute("aria-pressed", w);
   b.textContent = (w ? "✓ " : "") + t("seen");
 });
+/* ===== 7. KATTINTÁSOK ==================================================== */
 document.addEventListener("click", e => {
   const c = e.target.closest(".chip[data-kind]"); if (!c) return;
   const {kind, code} = c.dataset;
@@ -222,9 +275,18 @@ document.addEventListener("click", e => {
   if (!picks[kind][code]) delete picks[kind][code];
   savePicks(); fillChips(); apply();
 });
+$("#resetAll").addEventListener("click", resetAll);
+$("#expRec").addEventListener("click", () => {
+  // Datei zum Hochladen ins Repo: data/ajanlasok.json
+  const blob = new Blob([JSON.stringify({recs}, null, 1)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "ajanlasok.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  alert(t("recHint"));
+});
 $("#resetPicks").addEventListener("click", () => { picks.lang = {}; picks.country = {}; savePicks(); fillChips(); apply(); });
 $("#exp").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify({seen}, null, 1)], {type:"application/json"});
+  const blob = new Blob([JSON.stringify({seen, watch, recs}, null, 1)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `gesehen-${new Date().toISOString().slice(0,10)}.json`;
@@ -235,8 +297,12 @@ $("#imp").addEventListener("change", async e => {
   try {
     const d = JSON.parse(await f.text());
     const add = d.seen || {};
-    Object.assign(seen, add); saveSeen(); apply();
-    alert(t("impOk")(Object.keys(add).length));
+    Object.assign(seen, add); saveSeen();
+    Object.assign(watch, d.watch || {}); store("watch", watch);
+    Object.assign(recs, d.recs || {}); store("recs", recs);
+    apply();
+    const n = Object.keys(add).length + Object.keys(d.watch || {}).length + Object.keys(d.recs || {}).length;
+    alert(t("impOk")(n));
   } catch(err) { alert(t("impErr")); }
   e.target.value = "";
 });
@@ -246,6 +312,10 @@ document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pres
   fillGenres();
   if (loaded) { fillChips(); apply(); }
 }
+/* ===== 3. ÁLLAPOT ========================================================
+   all     = az összes film        | view    = ami épp a szűrők után látszik
+   seen    = a "láttam" pipáid     | picks   = nyelv/ország választás
+   Ezek localStorage-ba mentődnek: ez a böngésző saját kis tárolója. */
 let loaded = false;
 let years = [], genreNames = {}, initial = "", weekAgo = "";
 function fillGenres(){
@@ -318,6 +388,47 @@ function fillYears(){
 }
 let seen = (()=>{ try { return JSON.parse(localStorage.getItem("seen") || "{}") } catch(e){ return {} } })();
 function saveSeen(){ try { localStorage.setItem("seen", JSON.stringify(seen)) } catch(e){} }
+// Merkliste (⭐) und eigene Empfehlungen (🍽) – genau wie "gesehen" lokal gespeichert
+const load = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") } catch(e){ return {} } };
+const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch(e){} };
+let watch = load("watch"), recs = load("recs");
+let recsRemote = {};   // aus data/ajanlasok.json – sichtbar für alle Besucher
+
+// Alle Filtereinstellungen merken (Auswahlfelder und Schalter)
+const CTRL = ["#sort","#votes","#seenFilter","#listFilter","#yFrom","#yTo","#genre","#runtime"];
+const SWITCH = ["#onlyNew","#showGone"];
+function saveFilters(){
+  const f = {country};
+  CTRL.forEach(id => f[id] = $(id).value);
+  SWITCH.forEach(id => f[id] = $(id).checked);
+  store("filters", f);
+}
+function restoreFilters(){
+  const f = load("filters");
+  if (f.country) { country = f.country; document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.c === country)); }
+  CTRL.forEach(id => { if (f[id] != null) $(id).value = f[id]; });
+  SWITCH.forEach(id => { if (f[id] != null) $(id).checked = f[id]; });
+}
+// Zählt, wie viele Filter vom Normalzustand abweichen
+function activeFilters(){
+  let n = 0;
+  if (country !== "ALL") n++;
+  if ($("#q").value.trim()) n++;
+  CTRL.forEach(id => { const v = $(id).value; if (id !== "#sort" && v && v !== "all" && v !== "0") n++; });
+  if ($("#onlyNew").checked) n++;
+  if (!$("#showGone").checked) n++;
+  n += Object.values(picks.lang).filter(Boolean).length + Object.values(picks.country).filter(Boolean).length;
+  return n;
+}
+function resetAll(){
+  country = "ALL";
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.c === "ALL"));
+  $("#q").value = "";
+  CTRL.forEach(id => { const el = $(id); el.value = (id === "#sort") ? "combo" : (el.querySelector('option[value="all"]') ? "all" : ""); });
+  $("#onlyNew").checked = false; $("#showGone").checked = true;
+  picks.lang = {}; picks.country = {}; savePicks(); fillChips();
+  saveFilters(); apply();
+}
 const IMG = "https://image.tmdb.org/t/p/w154";
 const nf = () => new Intl.NumberFormat(t("locale"));
 const df = d => d ? new Date(d).toLocaleDateString(t("locale"),{day:"2-digit",month:"2-digit",year:"2-digit"}) : "";
@@ -344,6 +455,9 @@ function lastGone(m){
 
 function num(v){ return v == null ? -Infinity : v; }
 
+/* ===== 4. A SZŰRÉS ÉS RENDEZÉS ===========================================
+   Itt dől el, mely filmek látszanak és milyen sorrendben.
+   filter = kidobja, ami nem felel meg | sort = sorrendbe rakja */
 function apply(){
   const q = $("#q").value.trim().toLowerCase();
   const sort = $("#sort").value;
@@ -364,6 +478,9 @@ function apply(){
     const rtv = $("#runtime").value;
     if (rtv) { const [lo, hi] = rtv.split("-").map(Number); if (!m.runtime || m.runtime <= lo || m.runtime > hi) return false; }
     if ($("#onlyNew").checked && !isNew(m)) return false;
+    const lf = $("#listFilter").value;
+    if (lf === "watch" && !watch[m.id]) return false;
+    if (lf === "rec" && !(recs[m.id] || recsRemote[m.id])) return false;
     const sf = $("#seenFilter").value;
     if (sf === "yes" && !seen[m.id]) return false;
     if (sf === "no" && seen[m.id]) return false;
@@ -386,6 +503,7 @@ function apply(){
   // verfügbare zuerst, außer bei "Zuletzt entfernt"
   view.sort((a,b) => (sort !== "gone" && (b._on - a._on)) || cmp(a,b));
 
+  $("#resetAll").textContent = t("resetAll")(activeFilters());
   const avail = view.filter(m => m._on).length;
   $("#stats").textContent = t("stats")(nf().format(view.length), nf().format(avail)) + (updated ? t("stand")(new Date(updated).toLocaleString(t("locale"),{dateStyle:"short",timeStyle:"short"})) : "");
   $("#list").innerHTML = view.length ? "" : `<p class="empty">${t("empty")}</p>`;
@@ -403,19 +521,21 @@ function flag(m, c, label){
     : `<span class="flag off" title="${t("removed")(df(a.gone))}"><span class="dot"></span>${label} ${t("until")(df(a.gone))}</span>`;
 }
 
+/* ===== 5. EGY FILM KIRAJZOLÁSA ===========================================
+   Szövegből épít HTML-t. Az esc() védi az oldalt a különleges karakterektől. */
 function card(m){
   const r = m.r || {};
   const imdb = r.imdb != null ? r.imdb.toFixed(1) : "–";
   const hi = r.imdb >= 7.5 ? " hi" : "";
   const orig = m.orig && m.orig !== ttl(m) ? `, ${esc(m.orig)}` : "";
   const link = m.imdb_id ? `https://www.imdb.com/title/${m.imdb_id}/` : `https://www.themoviedb.org/movie/${m.id}`;
-  const w = !!seen[m.id];
+  const w = !!seen[m.id], wl = !!watch[m.id], rc = !!(recs[m.id] || recsRemote[m.id]);
   return `<div class="film${m._on ? "" : " gone"}${w ? " watched" : ""}" data-id="${m.id}">
     <a class="pw" href="${link}" target="_blank" rel="noopener">${m.poster ? `<img class="poster" loading="lazy" alt="" src="${IMG}${m.poster}">` : `<div class="poster"></div>`}${w ? `<span class="tick" aria-hidden="true">✓</span>` : ""}</a>
     <div>
       <a class="title" href="${link}" target="_blank" rel="noopener">${esc(ttl(m))}</a>
       <div class="meta">${esc(m.year || "")}${m.runtime ? `, ${m.runtime} ${t("min")}` : ""}${orig}</div>
-      <div class="flags">${isNew(m) ? `<span class="new">${t("newBadge")}</span>` : ""}${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}${gtags(m)}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button></div>
+      <div class="flags">${isNew(m) ? `<span class="new">${t("newBadge")}</span>` : ""}${rc ? `<span class="recbadge">${t("recBadge")}</span>` : ""}${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}${gtags(m)}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button><button class="star" aria-pressed="${wl}">${wl ? "★ " : "☆ "}${t("watch")}</button><button class="rec" aria-pressed="${!!recs[m.id]}">${t("rec")}</button></div>
     </div>
     <div class="scores">
       <div class="imdb${hi}" title="IMDb">${imdb}</div>
@@ -426,6 +546,9 @@ function card(m){
   </div>`;
 }
 
+/* ===== 6. FOKOZATOS BETÖLTÉS =============================================
+   Nem rajzolunk ki egyszerre 7000 filmet, csak 60-at. Ha az oldal aljára
+   érsz (IntersectionObserver figyeli), jön a következő adag. */
 function renderMore(){
   const chunk = view.slice(shown, shown + PAGE);
   $("#list").insertAdjacentHTML("beforeend", chunk.map(card).join(""));
@@ -436,16 +559,18 @@ new IntersectionObserver(e => { if (e[0].isIntersecting && shown < view.length) 
   {rootMargin:"800px"}).observe($("#more"));
 
 document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
-  country = b.dataset.c;
+  country = b.dataset.c; saveFilters();
   document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
   apply(); window.scrollTo({top:0});
 }));
 let qTimer; $("#q").addEventListener("input", () => { clearTimeout(qTimer); qTimer = setTimeout(apply, 150); });
-["#sort","#votes","#showGone","#seenFilter","#yFrom","#yTo","#genre","#runtime","#onlyNew"].forEach(s => $(s).addEventListener("change", apply));
+["#sort","#votes","#showGone","#seenFilter","#listFilter","#yFrom","#yTo","#genre","#runtime","#onlyNew"].forEach(s => $(s).addEventListener("change", () => { saveFilters(); apply(); }));
 
 document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.l)));
 setLang(lang);
 $("#stats").textContent = t("loading");
+/* ===== 8. ADATOK BETÖLTÉSE ===============================================
+   Ez fut le utoljára: beolvassa a JSON-fájlt, majd elindítja a szűrést. */
 fetch("data/movies.json", {cache:"no-cache"})
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(db => {
@@ -458,7 +583,13 @@ fetch("data/movies.json", {cache:"no-cache"})
     fillYears();
     fillGenres();
     fillChips();
+    restoreFilters();      // gespeicherte Filter wieder einsetzen
     loaded = true;
+    // Empfehlungen aus dem Repo (optional – Datei muss nicht existieren)
+    fetch("data/ajanlasok.json", {cache:"no-cache"})
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && d.recs) { recsRemote = d.recs; apply(); } })
+      .catch(() => {});
     apply();
   })
   .catch(() => {
