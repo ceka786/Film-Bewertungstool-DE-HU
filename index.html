@@ -82,6 +82,9 @@ main{max-width:760px;margin:0 auto;padding:6px 8px 40px}
 .film a{color:inherit;text-decoration:none}
 .tools{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 10px}
 .tools button,.tools label{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}
+/* Elrejtés-gomb (✕): kicsi kör a pontszám-oszlop tetején */
+.hide{font:inherit;font-size:13px;line-height:1;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer;padding:0}
+.hide:hover{border-color:#C0392B;color:#C0392B}
 .star{font:inherit;font-size:13px;border-radius:6px;padding:2px 8px;border:1px dashed var(--muted);background:none;color:var(--muted);cursor:pointer}
 .star[aria-pressed=true]{border:1px solid #C98A00;background:#C98A00;color:#fff}
 .rec{font:inherit;font-size:13px;border-radius:6px;padding:2px 8px;border:1px dashed var(--muted);background:none;color:var(--muted);cursor:pointer}
@@ -177,6 +180,7 @@ footer a{color:inherit}
       <option value="all" data-i="l_all"></option>
       <option value="watch" data-i="l_watch"></option>
       <option value="rec" data-i="l_rec"></option>
+      <option value="hidden" data-i="l_hidden"></option>
     </select>
     <label class="toggle full"><input type="checkbox" id="onlyNew"> <span data-i="onlyNew"></span></label>
     <label class="toggle full"><input type="checkbox" id="showGone" checked> <span data-i="showGone"></span></label>
@@ -211,10 +215,10 @@ const T = {
     search:"Titel suchen", all:"Alle", both:"Beide", s_year:"Neueste Filme", s_added:"Neu im Katalog",
     s_gone:"Zuletzt entfernt", s_title:"Titel A–Z", v0:"Alle Stimmen", vN:n=>`ab ${n} Stimmen`,
     showGone:"Nicht mehr verfügbare Filme zeigen", seen:"Gesehen", panelTitle:"Sprache und Land", panelHint:"Tippe einmal für ✓ (nur diese), zweimal für ✗ (ausschließen), dreimal zurück auf neutral.",
-    langLabel:"Originalsprache", countryLabel:"Produktionsland", resetPicks:"Auswahl zurücksetzen", picksActive:n=>` ${n} aktiv`, s_combo:"Kombi-Score", g_any:"Alle Genres", rt_any:"Laufzeit: alle", rt_90:"bis 90 Min.", rt_120:"bis 2 Std.", rt_long:"über 2 Std.", onlyNew:"Nur neu in den letzten 7 Tagen", newBadge:"NEU", min:"Min.", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", watch:"Merken", rec:"Ich empfehle", recBadge:"🍽 Empfehlung", l_all:"Alle Filme", l_watch:"Nur meine Merkliste", l_rec:"Nur meine Empfehlungen",
+    langLabel:"Originalsprache", countryLabel:"Produktionsland", resetPicks:"Auswahl zurücksetzen", picksActive:n=>` ${n} aktiv`, s_combo:"Kombi-Score", g_any:"Alle Genres", rt_any:"Laufzeit: alle", rt_90:"bis 90 Min.", rt_120:"bis 2 Std.", rt_long:"über 2 Std.", onlyNew:"Nur neu in den letzten 7 Tagen", newBadge:"NEU", min:"Min.", yFrom:"Jahr von", yTo:"bis Jahr", yAny:"alle", sf_all:"Gesehene und ungesehene", sf_no:"Nur ungesehene", sf_yes:"Nur gesehene", watch:"Merken", rec:"Ich empfehle", recBadge:"🍽 Empfehlung", l_all:"Alle Filme", l_watch:"Nur meine Merkliste", l_rec:"Nur meine Empfehlungen", l_hidden:"Ausgeblendete Filme", hideT:"Ausblenden", unhideT:"Wieder einblenden",
     resetAll:n=>n ? `Filter zurücksetzen (${n} aktiv)` : "Keine Filter aktiv",
     expRec:"Empfehlungen als Datei", recHint:"Datei ajanlasok.json ins Repo laden, dann sehen sie auch deine Brüder.",
-    exp:"Gesehen-Liste sichern", imp:"Gesehen-Liste laden", impOk:n=>`${n} Einträge übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
+    exp:"Meine Listen sichern", imp:"Meine Listen laden", impOk:n=>`${n} Einträge übernommen.`, impErr:"Datei konnte nicht gelesen werden.", seenNote:"Deine Häkchen werden nur auf diesem Gerät gespeichert. Sichere die Liste ab und zu, bevor du Browserdaten löschst.", loading:"Katalog wird geladen …",
     stats:(n,a)=>`${n} Filme, davon ${a} aktuell verfügbar.`, stand:d=>` Stand: ${d}.`,
     empty:"Keine Filme gefunden. Suche oder Filter anpassen.",
     error:"Noch keine Daten vorhanden. Starte in GitHub unter „Actions“ den Workflow „Katalog aktualisieren“ und lade die Seite danach neu.",
@@ -225,10 +229,10 @@ const T = {
     search:"Keresés cím alapján", all:"Mind", both:"Mindkettő", s_year:"Legújabb filmek", s_added:"Új a katalógusban",
     s_gone:"Nemrég eltávolítva", s_title:"Cím A–Z", v0:"Szavazat: mind", vN:n=>`min. ${n} szavazat`,
     showGone:"Már nem elérhető filmek mutatása", seen:"Láttam", panelTitle:"Nyelv és ország", panelHint:"Egy koppintás: ✓ (csak ezek), kettő: ✗ (kizárás), három: semleges.",
-    langLabel:"Eredeti nyelv", countryLabel:"Gyártó ország", resetPicks:"Választás törlése", picksActive:n=>` ${n} aktív`, s_combo:"Kombi pontszám", g_any:"Minden műfaj", rt_any:"Hossz: mind", rt_90:"max. 90 perc", rt_120:"max. 2 óra", rt_long:"2 óránál hosszabb", onlyNew:"Csak az elmúlt 7 nap újdonságai", newBadge:"ÚJ", min:"perc", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", watch:"Megnézem", rec:"Ajánlom", recBadge:"🍽 Ajánlott", l_all:"Minden film", l_watch:"Csak a listám", l_rec:"Csak az ajánlásaim",
+    langLabel:"Eredeti nyelv", countryLabel:"Gyártó ország", resetPicks:"Választás törlése", picksActive:n=>` ${n} aktív`, s_combo:"Kombi pontszám", g_any:"Minden műfaj", rt_any:"Hossz: mind", rt_90:"max. 90 perc", rt_120:"max. 2 óra", rt_long:"2 óránál hosszabb", onlyNew:"Csak az elmúlt 7 nap újdonságai", newBadge:"ÚJ", min:"perc", yFrom:"Évtől", yTo:"Évig", yAny:"mind", sf_all:"Látott és nem látott", sf_no:"Csak nem látott", sf_yes:"Csak látott", watch:"Megnézem", rec:"Ajánlom", recBadge:"🍽 Ajánlott", l_all:"Minden film", l_watch:"Csak a listám", l_rec:"Csak az ajánlásaim", l_hidden:"Elrejtett filmek", hideT:"Elrejtés", unhideT:"Visszahozás",
     resetAll:n=>n ? `Szűrők törlése (${n} aktív)` : "Nincs aktív szűrő",
     expRec:"Ajánlások fájlba", recHint:"Az ajanlasok.json fájlt töltsd fel a repóba, akkor a tesóid is látják.",
-    exp:"Látott lista mentése", imp:"Látott lista betöltése", impOk:n=>`${n} bejegyzés betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
+    exp:"Listáim mentése", imp:"Listáim betöltése", impOk:n=>`${n} bejegyzés betöltve.`, impErr:"A fájlt nem sikerült beolvasni.", seenNote:"A pipák csak ezen az eszközön tárolódnak. Időnként mentsd el a listát, mielőtt böngészőadatokat törölsz.", loading:"Katalógus betöltése …",
     stats:(n,a)=>`${n} film, ebből ${a} jelenleg elérhető.`, stand:d=>` Frissítve: ${d}.`,
     empty:"Nincs találat. Módosítsd a keresést vagy a szűrőket.",
     error:"Még nincsenek adatok. GitHubon az „Actions” fülön indítsd el a „Katalog aktualisieren” workflow-t, majd töltsd újra az oldalt.",
@@ -248,6 +252,17 @@ function setLang(l){
   document.querySelectorAll("#votes option").forEach(o => { if (+o.value) o.textContent = t("vN")(nf().format(+o.value)); });
   $("#list").addEventListener("click", e => {
   // ⭐ Merkliste und 🍽 Empfehlung: umschalten und Zeile neu zeichnen
+  const hb = e.target.closest(".hide");
+  if (hb) {
+    const row = hb.closest(".film"), id = row.dataset.id;
+    if (hidden[id]) delete hidden[id]; else hidden[id] = new Date().toISOString().slice(0,10);
+    store("hidden", hidden);
+    // a film kikerül az aktuális nézetből (elrejtve vagy visszahozva)
+    view = view.filter(m => String(m.id) !== id); shown = Math.max(0, shown - 1);
+    row.remove(); updateStats();
+    if (!view.length) $("#list").innerHTML = `<p class="empty">${t("empty")}</p>`;
+    return;
+  }
   const sb = e.target.closest(".star"), rb = e.target.closest(".rec");
   if (sb || rb) {
     const row = (sb || rb).closest(".film"), id = row.dataset.id;
@@ -286,7 +301,7 @@ $("#expRec").addEventListener("click", () => {
 });
 $("#resetPicks").addEventListener("click", () => { picks.lang = {}; picks.country = {}; savePicks(); fillChips(); apply(); });
 $("#exp").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify({seen, watch, recs}, null, 1)], {type:"application/json"});
+  const blob = new Blob([JSON.stringify({seen, watch, recs, hidden}, null, 1)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `gesehen-${new Date().toISOString().slice(0,10)}.json`;
@@ -300,8 +315,9 @@ $("#imp").addEventListener("change", async e => {
     Object.assign(seen, add); saveSeen();
     Object.assign(watch, d.watch || {}); store("watch", watch);
     Object.assign(recs, d.recs || {}); store("recs", recs);
+    Object.assign(hidden, d.hidden || {}); store("hidden", hidden);
     apply();
-    const n = Object.keys(add).length + Object.keys(d.watch || {}).length + Object.keys(d.recs || {}).length;
+    const n = Object.keys(add).length + Object.keys(d.watch || {}).length + Object.keys(d.recs || {}).length + Object.keys(d.hidden || {}).length;
     alert(t("impOk")(n));
   } catch(err) { alert(t("impErr")); }
   e.target.value = "";
@@ -392,6 +408,7 @@ function saveSeen(){ try { localStorage.setItem("seen", JSON.stringify(seen)) } 
 const load = (k) => { try { return JSON.parse(localStorage.getItem(k) || "{}") } catch(e){ return {} } };
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch(e){} };
 let watch = load("watch"), recs = load("recs");
+let hidden = load("hidden");   // elrejtett filmek: sehol nem jelennek meg, csak az "Elrejtett filmek" listában
 let recsRemote = {};   // aus data/ajanlasok.json – sichtbar für alle Besucher
 
 // Alle Filtereinstellungen merken (Auswahlfelder und Schalter)
@@ -479,6 +496,7 @@ function apply(){
     if (rtv) { const [lo, hi] = rtv.split("-").map(Number); if (!m.runtime || m.runtime <= lo || m.runtime > hi) return false; }
     if ($("#onlyNew").checked && !isNew(m)) return false;
     const lf = $("#listFilter").value;
+    if (lf === "hidden" ? !hidden[m.id] : hidden[m.id]) return false;   // elrejtés
     if (lf === "watch" && !watch[m.id]) return false;
     if (lf === "rec" && !(recs[m.id] || recsRemote[m.id])) return false;
     const sf = $("#seenFilter").value;
@@ -503,12 +521,17 @@ function apply(){
   // verfügbare zuerst, außer bei "Zuletzt entfernt"
   view.sort((a,b) => (sort !== "gone" && (b._on - a._on)) || cmp(a,b));
 
-  $("#resetAll").textContent = t("resetAll")(activeFilters());
-  const avail = view.filter(m => m._on).length;
-  $("#stats").textContent = t("stats")(nf().format(view.length), nf().format(avail)) + (updated ? t("stand")(new Date(updated).toLocaleString(t("locale"),{dateStyle:"short",timeStyle:"short"})) : "");
+  updateStats();
   $("#list").innerHTML = view.length ? "" : `<p class="empty">${t("empty")}</p>`;
   shown = 0;
   renderMore();
+}
+
+/* Számláló és "Szűrők törlése" felirat frissítése */
+function updateStats(){
+  $("#resetAll").textContent = t("resetAll")(activeFilters());
+  const avail = view.filter(m => m._on).length;
+  $("#stats").textContent = t("stats")(nf().format(view.length), nf().format(avail)) + (updated ? t("stand")(new Date(updated).toLocaleString(t("locale"),{dateStyle:"short",timeStyle:"short"})) : "");
 }
 
 function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -538,6 +561,7 @@ function card(m){
       <div class="flags">${isNew(m) ? `<span class="new">${t("newBadge")}</span>` : ""}${rc ? `<span class="recbadge">${t("recBadge")}</span>` : ""}${flag(m,"DE","🇩🇪")}${flag(m,"HU","🇭🇺")}${gtags(m)}<button class="seen" aria-pressed="${w}">${w ? "✓ " : ""}${t("seen")}</button><button class="star" aria-pressed="${wl}">${wl ? "★ " : "☆ "}${t("watch")}</button><button class="rec" aria-pressed="${!!recs[m.id]}">${t("rec")}</button></div>
     </div>
     <div class="scores">
+      <button class="hide" title="${hidden[m.id] ? t("unhideT") : t("hideT")}" aria-label="${hidden[m.id] ? t("unhideT") : t("hideT")}">${hidden[m.id] ? "↺" : "✕"}</button>
       <div class="imdb${hi}" title="IMDb">${imdb}</div>
       <div class="combo" title="${t("s_combo")}">Ø ${combo(m) ?? "–"}</div>
       <div class="sub">🍅 ${r.rt != null ? r.rt + "%" : "–"}</div>
